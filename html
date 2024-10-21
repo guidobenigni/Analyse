@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwimmer Analyse</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5dc; /* Cremefarbener Hintergrund */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone {
+            background-color: #f7f7f0;
+            border: 2px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .drop-zone.over {
+            background-color: #e0e0d1;
+            border-color: #b3b3a3;
+        }
+
+        #output {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+            white-space: pre-line;
+        }
+
+        .drop-zone p {
+            margin: 0;
+            color: #666;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Schwimmer Analyse</h1>
+        <div class="drop-zone" id="dropZone">
+            <p>PDF hierher ziehen oder klicken</p>
+        </div>
+        <div id="output">Ziehe eine PDF-Datei hierher, um die Schwimmerdaten zu analysieren.</div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const output = document.getElementById('output');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('over');
+        });
+
+        dropZone.addEventListener('click', () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/pdf';
+            fileInput.click();
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    handleFileUpload(file);
+                }
+            };
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                handleFileUpload(file);
+            } else {
+                output.innerText = 'Bitte ein PDF hochladen.';
+            }
+        });
+
+        function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('pdf', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.innerText = `Analyse abgeschlossen:\n${data.result}`;
+            })
+            .catch(error => {
+                output.innerText = 'Fehler bei der Analyse';
+            });
+        }
+    </script>
+</body>
+</html>
